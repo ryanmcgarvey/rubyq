@@ -15,6 +15,7 @@ class Client
     EM.run do
       url = "ws://0.0.0.0:7001"
       ws = Faye::WebSocket::Client.new(url, [], :extensions => ([PermessageDeflate]))
+      has_errored = false
       ws.onopen = lambda do |event|
         data = { "name" => name, "type" => "subscribe", "channel" => "default" }.to_json
         ws.send(data)
@@ -25,13 +26,14 @@ class Client
       end
       ws.onerror = lambda { |error| p([:error, error.message]) }
       ws.onmessage = lambda do |message|
-        p([:message, message.data])
-        data = message.data
+        data = JSON.parse(message.data)
+        p([:message, data])
         id = data["id"]
-        if (id == 3)
-          ws.send("type" => "error", "id" => id)
+        if (id == 3) and (not has_errored)
+          ws.send({ "type" => "error", "id" => id }.to_json)
+          has_errored = true
         else
-          ws.send("type" => "success", "id" => id)
+          ws.send({ "type" => "success", "id" => id }.to_json)
         end
       end
     end
