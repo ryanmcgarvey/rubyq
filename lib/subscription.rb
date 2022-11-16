@@ -15,6 +15,18 @@ class Job
     @status = status
     @time = time
   end
+
+  def needs_retry
+    ["timeout", "error"].include?(status)
+  end
+
+  def as_json
+    { "event_id" => event_id, "status" => status, "time" => time }
+  end
+
+  def to_json
+    as_json.to_json
+  end
 end
 
 class SubscriptionManager

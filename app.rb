@@ -10,6 +10,7 @@ App = lambda do |env|
   if Faye::WebSocket.websocket?(env)
     ws = Faye::WebSocket.new(env, ["irc", "xmpp"], options)
     ws.onmessage = lambda do |wsevent|
+      p(wsevent.data)
       data = JSON.parse(wsevent.data)
       message_handler.process_message(ws, data)
     end

@@ -6,8 +6,12 @@ class Event
     @data = data
   end
 
+  def as_json
+    { "channel" => channel, "data" => data, "id" => id }
+  end
+
   def to_json
-    { "channel" => channel, "data" => data, "id" => id }.to_json
+    as_json.to_json
   end
 end
 
