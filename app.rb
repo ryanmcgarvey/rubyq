@@ -11,13 +11,9 @@ App = lambda do |env|
     ws = Faye::WebSocket.new(env, ["irc", "xmpp"], options)
     ws.onmessage = lambda do |wsevent|
       data = JSON.parse(wsevent.data)
-      p(data)
       message_handler.process_message(ws, data)
     end
-    ws.onclose = lambda do |event|
-      p([:close, event.code, event.reason])
-      ws = nil
-    end
+    ws.onclose = lambda { |event| ws = nil }
     ws.rack_response
   else
     static.call(env)

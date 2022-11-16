@@ -1,25 +1,67 @@
 class Subscription
-  attr_reader(:name, :ws, :channel)
+  attr_reader(:ws, :channels)
 
-  def initialize(name, ws, channel)
-    @name = name
+  def initialize(ws, channels)
     @ws = ws
-    @channel = channel
+    @channels = channels
+  end
+end
+
+class Job
+  attr_accessor(:event_id, :status, :time)
+
+  def initialize(event_id, status, time)
+    @event_id = event_id
+    @status = status
+    @time = time
   end
 end
 
 class SubscriptionManager
-  attr_reader(:subscriptions)
+  attr_reader(:subscriptions, :jobs)
 
   def initialize
     @subscriptions = {}
+    @jobs = {}
+  end
+
+  def add_subscription(ws, data)
+    channels = data["channels"]
+    channels.each do |channel|
+      if (subscriptions[channel] == nil)
+        subscriptions[channel] = Subscription.new(ws, channels)
+      else
+        subscriptions[channel] = Subscription.new(ws, channels)
+      end
+    end
   end
 
   def update_subscriptions(event)
-    subscriptions.each do |name, subscription|
-      if (subscription.channel == event.channel)
-        subscription.ws.send(event.to_json)
+    subscription = subscriptions[event.channel]
+    if subscription
+      subscription.ws.send(event.to_json)
+      jobs[event.id] = Job.new(event.id, "sent", Time.now)
+      process_timeout(event.id)
+    end
+  end
+
+  def process_timeout(event_id)
+    Thread.new do
+      sleep(5)
+      if (jobs[event_id].status == "sent")
+        jobs[event_id].status = "timeout"
+        p("timeout #{event_id}")
       end
     end
+  end
+
+  def job_succeeded(event_id)
+    jobs[event_id].status = "success"
+    p("success #{event_id}")
+  end
+
+  def job_failed(event_id)
+    jobs[event_id].status = "error"
+    p("error #{event_id}")
   end
 end
