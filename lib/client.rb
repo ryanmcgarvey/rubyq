@@ -4,8 +4,9 @@ require("eventmachine")
 require("permessage_deflate")
 require("json")
 class Client
-  def initialize
+  def initialize(from = nil)
     @callbacks = {}
+    @from = from
   end
 
   def on(channel, &block)
@@ -17,7 +18,7 @@ class Client
       url = "ws://0.0.0.0:7001"
       ws = Faye::WebSocket::Client.new(url, [], :extensions => ([PermessageDeflate]))
       ws.onopen = lambda do |event|
-        data = { "type" => "subscribe", "channels" => @callbacks.keys }.to_json
+        data = { "type" => "subscribe", "channels" => @callbacks.keys, "cursor" => (@from) }.to_json
         ws.send(data)
       end
       ws.onclose = lambda { |close| EM.stop }

@@ -4,8 +4,8 @@ class MessageHandler
   attr_reader(:manager, :event_log)
 
   def initialize
-    @manager = SubscriptionManager.new
     @event_log = EventLog.new
+    @manager = SubscriptionManager.new(event_log)
   end
 
   def process_message(ws, data)

@@ -1,5 +1,5 @@
 require_relative("lib/client")
-client = Client.new
+client = Client.new(ARGV[0])
 client.on("success") do |data|
   p("success: #{data["id"]}")
   true

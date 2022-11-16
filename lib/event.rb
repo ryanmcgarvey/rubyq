@@ -20,6 +20,11 @@ class EventLog
     @events = []
   end
 
+  def from(cursor)
+    return [] if (cursor == nil)
+    @events[(cursor..-1)]
+  end
+
   def add(event)
     event.id = @events.length
     @events.push(event)

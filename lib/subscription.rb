@@ -30,9 +30,10 @@ class Job
 end
 
 class SubscriptionManager
-  attr_reader(:subscriptions, :jobs)
+  attr_reader(:subscriptions, :jobs, :event_log)
 
-  def initialize
+  def initialize(event_log)
+    @event_log = event_log
     @subscriptions = {}
     @jobs = {}
   end
@@ -42,6 +43,13 @@ class SubscriptionManager
     channels.each do |channel|
       if (subscriptions[channel] == nil)
         subscriptions[channel] = Subscription.new(ws, channels)
+        cursor = data["cursor"]
+        if (cursor != nil)
+          event_log.from(cursor.to_i).each do |event|
+            p(event)
+            update_subscriptions(event) if (channel == event.channel)
+          end
+        end
       else
         subscriptions[channel] = Subscription.new(ws, channels)
       end
